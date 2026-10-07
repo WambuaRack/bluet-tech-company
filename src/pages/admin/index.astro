@@ -10,15 +10,6 @@ import Base from '../../layouts/Base.astro';
       <label class="block text-sm">Password<input name="password" type="password" required autocomplete="current-password" class="field" /></label>
       <p id="lerr" class="text-sm text-red-400" role="alert" hidden></p>
       <button class="btn btn-primary w-full">Sign in</button>
-      <button id="forgot" type="button" class="text-sm text-sky underline">Forgot password?</button>
-      <p id="lmsg" class="text-sm" role="status" hidden></p>
-    </form>
-    <form id="reset" hidden class="card mx-auto mt-10 max-w-sm space-y-4">
-      <h1 class="text-2xl font-bold">Reset admin password</h1>
-      <label class="block text-sm">New password<input name="password" type="password" required autocomplete="new-password" class="field" /></label>
-      <label class="block text-sm">Confirm new password<input name="confirm" type="password" required autocomplete="new-password" class="field" /></label>
-      <p id="rmsg" class="text-sm text-red-400" role="alert" hidden></p>
-      <button class="btn btn-primary w-full">Update password</button>
     </form>
     <section id="app" hidden>
       <div class="flex flex-wrap items-center justify-between gap-3"><h1 class="text-3xl font-bold">Admin</h1><button id="out" class="btn btn-ghost text-sm">Sign out</button></div>
@@ -50,15 +41,6 @@ import Base from '../../layouts/Base.astro';
     async function guard() {
       if (!supabase) { $('#cfg').hidden = false; return; }
       const { data: { session } } = await supabase.auth.getSession();
-      if (new URLSearchParams(location.search).has('reset')) {
-        $('#login').hidden = true; $('#app').hidden = true;
-        if (session) { $('#reset').hidden = false; return; }
-        $('#login').hidden = false;
-        $('#lerr').textContent = 'This password reset link is invalid or has expired. Request a new one.';
-        $('#lerr').hidden = false;
-        return;
-      }
-      $('#reset').hidden = true;
       if (!session) { $('#login').hidden = false; $('#app').hidden = true; return; }
       const { data } = await supabase.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
       if (!data) { await supabase.auth.signOut(); $('#login').hidden = false; $('#lerr').textContent = 'This account is not an admin.'; $('#lerr').hidden = false; return; }
@@ -88,44 +70,9 @@ import Base from '../../layouts/Base.astro';
       $('#dlg').showModal();
     }
     $('#login').onsubmit = async (e: Event) => {
-      e.preventDefault(); $('#lmsg').hidden = true; const f = new FormData($('#login'));
+      e.preventDefault(); const f = new FormData($('#login'));
       const { error } = await supabase.auth.signInWithPassword({ email: f.get('email'), password: f.get('password') });
       if (error) { $('#lerr').textContent = 'Wrong email or password.'; $('#lerr').hidden = false; } else guard();
-    };
-    $('#forgot').onclick = async () => {
-      const form = $('#login') as HTMLFormElement;
-      const email = (new FormData(form).get('email') as string).trim();
-      if (!form.elements.namedItem('email').reportValidity()) return;
-      $('#lerr').hidden = true; $('#lmsg').hidden = true;
-      const button = $('#forgot') as HTMLButtonElement; button.disabled = true;
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/admin?reset=1` });
-      button.disabled = false;
-      if (error) {
-        $('#lmsg').textContent = 'Could not request a password reset. Please try again.';
-        $('#lmsg').className = 'text-sm text-red-400'; $('#lmsg').hidden = false;
-        return;
-      }
-      $('#lmsg').textContent = 'If an admin account exists for that email, a password reset link has been sent.';
-      $('#lmsg').className = 'text-sm text-sky'; $('#lmsg').hidden = false;
-    };
-    $('#reset').onsubmit = async (e: Event) => {
-      e.preventDefault();
-      const f = new FormData($('#reset'));
-      const password = f.get('password') as string;
-      const message = $('#rmsg');
-      message.hidden = true;
-      if (password !== f.get('confirm')) {
-        message.textContent = 'Passwords do not match.'; message.hidden = false; return;
-      }
-      const button = $('#reset button') as HTMLButtonElement; button.disabled = true;
-      const { error } = await supabase.auth.updateUser({ password });
-      button.disabled = false;
-      if (error) {
-        message.textContent = 'Could not update password: ' + error.message; message.hidden = false; return;
-      }
-      history.replaceState(null, '', '/admin');
-      await guard();
-      say('Password updated.');
     };
     $('#out').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
     $('#tabs').onclick = (e: any) => { const k = e.target.dataset.k; if (k) { cur = k; tabs(); load(); } };
