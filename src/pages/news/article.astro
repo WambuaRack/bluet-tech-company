@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="News article" description="Read the latest news from Bluet Tech.">
+  <article id="a" class="mx-auto max-w-2xl px-5 pt-24" aria-busy="true"><a href="/news" class="text-sm text-sky">All news</a><div class="skeleton mt-8 h-64"></div></article>
+  <script>
+    import { supabase, esc, img, fmt } from '../../lib/supabase';
+    const box = document.getElementById('a')!, slug = new URLSearchParams(location.search).get('slug');
+    const fail = (m: string) => { box.innerHTML = `<a href="/news" class="text-sm text-sky">All news</a><div role="alert" class="card mt-8">${m}</div>`; box.removeAttribute('aria-busy'); };
+    (async () => {
+      if (!supabase || !slug) return fail('We could not find this article.');
+      const { data, error } = await supabase.from('news').select('*').eq('slug', slug).eq('published', true).maybeSingle();
+      if (error) return fail('We could not load this article. Please try again.');
+      if (!data) return fail('This article does not exist or was removed.');
+      document.title = data.title + ' | Bluet Tech';
+      document.querySelector('meta[name=description]')?.setAttribute('content', data.summary || '');
+      box.innerHTML = `<a href="/news" class="text-sm text-sky">All news</a><time class="mt-6 block text-sm text-mist">${fmt(data.created_at)}</time><h1 class="mt-2 text-4xl font-extrabold md:text-5xl">${esc(data.title)}</h1>` +
+        (data.image ? `<img src="${esc(img(data.image))}" alt="${esc(data.title)}" width="800" height="450" class="mt-8 aspect-video w-full rounded-2xl object-cover" />` : '') +
+        `<div class="prose-bluet mt-8">${String(data.body || '').split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
+      box.removeAttribute('aria-busy');
+    })();
+  </script>
+</Base>

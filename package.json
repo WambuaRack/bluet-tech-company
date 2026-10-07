@@ -1,0 +1,16 @@
+{
+  "name": "bluet-tech",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node ./node_modules/astro/astro.js dev",
+    "build": "node ./node_modules/astro/astro.js build",
+    "preview": "node ./node_modules/astro/astro.js preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

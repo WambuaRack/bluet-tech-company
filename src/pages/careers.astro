@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import Form from '../components/Form.astro';
+---
+<Base title="Careers" description="Open roles at Bluet Tech. Join a team building software, cloud and AI systems, and apply online.">
+  <section class="mx-auto max-w-3xl px-5 pt-24"><h1 class="text-5xl font-extrabold md:text-6xl">Build with us</h1>
+    <p class="mt-5 text-lg text-mist">We hire people who like solving real problems and explaining their thinking.</p>
+    <h2 class="mt-12 text-2xl font-bold">Open roles</h2>
+    <div id="list" class="mt-5 grid gap-4"></div>
+    <h2 id="apply" class="mt-16 text-2xl font-bold">Apply</h2>
+    <div class="mt-5"><Form table="applications" submit="Send application" type="application">
+      <label class="block text-sm">Name<input name="name" required maxlength="120" class="field" /></label>
+      <label class="block text-sm">Email<input type="email" name="email" required class="field" /></label>
+      <label class="block text-sm">Role<select name="role" id="role" class="field"><option>General application</option></select></label>
+      <label class="block text-sm">Link to CV or portfolio<input type="url" name="resume_url" class="field" placeholder="https://" /></label>
+      <label class="block text-sm">Tell us about yourself<textarea name="message" rows="5" required maxlength="5000" class="field"></textarea></label>
+    </Form></div></section>
+  <script>
+    import { supabase, esc } from '../lib/supabase';
+    import { renderList } from '../lib/list';
+    renderList(document.getElementById('list')!, supabase && (() => supabase.from('jobs').select('title,location,type,description').eq('open', true).order('created_at', { ascending: false })),
+      (j) => `<article class="card"><h3 class="font-bold">${esc(j.title)}</h3><p class="text-sm text-sky">${esc(j.location)} · ${esc(j.type)}</p><p class="mt-2 text-sm text-mist">${esc(j.description)}</p><a href="#apply" class="mt-3 inline-block text-sm text-sky" data-role="${esc(j.title)}">Apply for this role</a></article>`, 'No open roles right now. Join as a member to hear about new ones.')
+      .then((res) => {
+        const sel = document.getElementById('role') as HTMLSelectElement;
+        (res.data || []).forEach((j: any) => sel.add(new Option(j.title, j.title)));
+        document.getElementById('list')!.addEventListener('click', (e) => { const r = (e.target as HTMLElement).dataset.role; if (r) sel.value = r; });
+      });
+  </script>
+</Base>

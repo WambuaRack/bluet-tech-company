@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import Form from '../components/Form.astro';
+---
+<Base title="Become a member" description="Join Bluet Tech as a member to get news, product updates and new job openings by email.">
+  <section class="mx-auto max-w-xl px-5 pt-24"><h1 class="text-5xl font-extrabold">Join Bluet</h1>
+    <p class="mt-5 text-mist">Free membership. Get our news, product updates and new job openings. Unsubscribe any time.</p>
+    <div class="mt-10"><Form table="members" submit="Join now" type="member">
+      <label class="block text-sm">Name<input name="name" required maxlength="120" autocomplete="name" class="field" /></label>
+      <label class="block text-sm">Email<input type="email" name="email" required autocomplete="email" class="field" /></label>
+      <label class="block text-sm">I am interested in<select name="interest" class="field"><option>Everything</option><option>News</option><option>Products</option><option>Careers</option></select></label>
+      <p class="text-xs text-mist">By joining you agree to our <a href="/privacy" class="underline">privacy policy</a>.</p>
+    </Form></div></section>
+</Base>

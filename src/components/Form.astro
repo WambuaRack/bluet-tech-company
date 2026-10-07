@@ -1,0 +1,28 @@
+---
+const { table, submit = 'Send', type = 'contact' } = Astro.props;
+---
+<form data-table={table} data-type={type} class="space-y-4" novalidate>
+  <slot />
+  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+  <p class="form-error text-sm text-red-400" role="alert" hidden></p>
+  <button class="btn btn-primary w-full disabled:opacity-60 md:w-auto"><span>{submit}</span></button>
+</form>
+<script>
+import { supabase } from '../lib/supabase';
+document.querySelectorAll<HTMLFormElement>('form[data-table]').forEach((f) => {
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = f.querySelector<HTMLElement>('.form-error')!, btn = f.querySelector('button')!, label = btn.querySelector('span')!;
+    err.hidden = true;
+    if (!f.checkValidity()) { f.reportValidity(); return; }
+    const d = Object.fromEntries(new FormData(f)) as Record<string, any>;
+    if (d.website) { location.href = '/thank-you'; return; }
+    delete d.website;
+    if (!supabase) { err.textContent = 'This form is not connected yet. Please email us instead.'; err.hidden = false; return; }
+    btn.disabled = true; const old = label.textContent; label.textContent = 'Sending...';
+    const { error } = await supabase.from(f.dataset.table!).insert(d);
+    if (error && error.code !== '23505') { err.textContent = 'Sorry, something went wrong. Please try again or email us.'; err.hidden = false; btn.disabled = false; label.textContent = old; return; }
+    location.href = '/thank-you?type=' + f.dataset.type;
+  });
+});
+</script>

@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Thank you" noindex>
+  <section class="mx-auto max-w-xl px-5 py-32 text-center"><h1 class="text-5xl font-extrabold">Thank you</h1>
+    <p id="m" class="mt-4 text-mist">We have received your submission.</p><a href="/" class="btn btn-primary mt-8">Back to home</a></section>
+  <script>
+    const t = new URLSearchParams(location.search).get('type') || '';
+    const msg: Record<string, string> = { contact: 'We received your message and will reply within one working day.', member: 'Welcome aboard. You are now on our member list.', application: 'Your application is in. We will contact you if there is a match.' };
+    if (msg[t]) document.getElementById('m')!.textContent = msg[t];
+  </script>
+</Base>

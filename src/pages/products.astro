@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Products" description="Software products and platforms built by Bluet Tech. See what we offer and request a demo.">
+  <section class="mx-auto max-w-6xl px-5 pt-24"><h1 class="text-5xl font-extrabold md:text-6xl">Products</h1>
+    <p class="mt-5 max-w-xl text-lg text-mist">Ready-to-use platforms from our team. Want to see one in action? Request a demo.</p>
+    <div id="list" class="mt-12 grid gap-6 md:grid-cols-3"></div></section>
+  <script>
+    import { supabase, esc, img } from '../lib/supabase';
+    import { renderList } from '../lib/list';
+    renderList(document.getElementById('list')!, supabase && (() => supabase.from('products').select('name,tagline,description,image').eq('published', true).order('created_at')),
+      (p) => `<article class="card">${p.image ? `<img src="${esc(img(p.image))}" alt="${esc(p.name)} screenshot" width="800" height="600" loading="lazy" class="mb-4 aspect-[4/3] w-full rounded-xl object-cover" />` : ''}<h2 class="text-xl font-bold">${esc(p.name)}</h2><p class="text-sm text-sky">${esc(p.tagline)}</p><p class="mt-2 text-sm text-mist">${esc(p.description)}</p><a href="/contact" class="btn btn-ghost mt-4 text-sm">Request a demo</a></article>`, 'Products are coming soon.');
+  </script>
+</Base>

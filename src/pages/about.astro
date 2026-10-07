@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+const values = [['Clear','We explain trade-offs in plain language and give honest timelines.'],['Careful','We test, document and hand over work you can maintain.'],['Close','You get a named team, not a ticket queue.']];
+const team = [['Amina Otieno','Chief Executive'],['Brian Kamau','Head of Engineering'],['Lydia Njeri','Head of Design'],['Peter Mwangi','Cloud and Security Lead']];
+---
+<Base title="About" description="Who we are and how Bluet Tech works.">
+  <section class="mx-auto max-w-4xl px-5 pt-24"><h1 class="text-5xl font-extrabold md:text-6xl">A small team with a big engineering habit.</h1>
+    <p class="mt-6 text-lg text-mist">Bluet Tech started with one idea: companies should not need a giant budget to get well-built software. We combine product design, engineering and cloud operations in one team so projects move from idea to launch without hand-off gaps.</p></section>
+  <section class="mx-auto mt-16 grid max-w-6xl gap-5 px-5 md:grid-cols-3">
+    {values.map(([t,d]) => <div class="rounded-2xl border border-line bg-panel p-6"><h2 class="text-xl font-bold">{t}</h2><p class="mt-2 text-sm text-mist">{d}</p></div>)}
+  </section>
+  <section class="mx-auto mt-20 max-w-6xl px-5"><h2 class="text-3xl font-bold">Leadership</h2>
+    <div class="mt-8 grid grid-cols-2 gap-5 md:grid-cols-4">
+      {team.map(([n,r]) => <div><div class="aspect-square rounded-2xl bg-gradient-to-br from-bluet/60 to-panel"></div><p class="mt-3 font-bold">{n}</p><p class="text-sm text-mist">{r}</p></div>)}
+    </div></section>
+</Base>

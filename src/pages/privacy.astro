@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../lib/site';
+---
+<Base title="Privacy and cookies" description="How Bluet Tech collects, uses and protects personal data, and how we use cookies.">
+  <article class="prose-bluet mx-auto max-w-2xl px-5 pt-24"><h1 class="text-4xl font-extrabold text-white">Privacy policy and cookies</h1><p>Last updated: 1 October 2026</p>
+    <h2>Who we are</h2><p>{site.name} is the controller of personal data collected on this website. Contact: {site.email}.</p>
+    <h2>What we collect</h2><ul><li>Contact form: name, email and message.</li><li>Membership: name, email and interest.</li><li>Job applications: name, email, role, CV link and message.</li><li>Analytics (only if you accept cookies): pages visited and device information, with IP addresses anonymised.</li></ul>
+    <h2>How we use it</h2><p>To reply to you, send member updates you asked for, assess job applications and improve the site. We do not sell personal data.</p>
+    <h2>Where it is stored</h2><p>Submissions are stored with our database provider, Supabase. Analytics is provided by Google Analytics when enabled.</p>
+    <h2>Retention and your rights</h2><p>We keep messages for up to 24 months and applications for up to 12 months. You can ask to see, correct or delete your data, or unsubscribe, by emailing {site.email}. Where the Kenya Data Protection Act applies, you may also complain to the Office of the Data Protection Commissioner.</p>
+    <h2>Cookies</h2><p>The site works without cookies. We store one small item in your browser to remember your cookie choice. Analytics cookies are only set after you press Accept. You can change your mind by clearing site data in your browser.</p></article>
+</Base>

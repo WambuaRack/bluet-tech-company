@@ -1,0 +1,101 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Admin" noindex bare>
+  <div class="mx-auto max-w-6xl px-5 py-10">
+    <p id="cfg" hidden class="card" role="alert">Supabase is not configured. Add PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY to .env.</p>
+    <form id="login" hidden class="card mx-auto mt-10 max-w-sm space-y-4">
+      <h1 class="text-2xl font-bold">Admin sign in</h1>
+      <label class="block text-sm">Email<input name="email" type="email" required autocomplete="username" class="field" /></label>
+      <label class="block text-sm">Password<input name="password" type="password" required autocomplete="current-password" class="field" /></label>
+      <p id="lerr" class="text-sm text-red-400" role="alert" hidden></p>
+      <button class="btn btn-primary w-full">Sign in</button>
+    </form>
+    <section id="app" hidden>
+      <div class="flex flex-wrap items-center justify-between gap-3"><h1 class="text-3xl font-bold">Admin</h1><button id="out" class="btn btn-ghost text-sm">Sign out</button></div>
+      <div id="tabs" class="mt-6 flex flex-wrap gap-2" role="tablist"></div>
+      <div class="mt-6 flex items-center justify-between"><h2 id="title" class="text-xl font-bold"></h2><button id="new" class="btn btn-primary text-sm">Add new</button></div>
+      <p id="msg" class="mt-3 text-sm" role="status"></p>
+      <div id="tbl" class="mt-4 overflow-x-auto rounded-2xl border border-line"></div>
+    </section>
+    <dialog id="dlg" class="m-auto w-[min(92vw,34rem)] rounded-2xl border border-line bg-panel p-6 text-white backdrop:bg-black/70">
+      <form id="ef" class="space-y-4"><h2 id="dt" class="text-xl font-bold"></h2><div id="fields" class="space-y-4"></div>
+        <p id="derr" class="text-sm text-red-400" role="alert" hidden></p>
+        <div class="flex gap-2"><button class="btn btn-primary text-sm">Save</button><button type="button" id="cancel" class="btn btn-ghost text-sm">Cancel</button></div></form>
+    </dialog>
+  </div>
+  <script>
+    import { supabase, esc } from '../../lib/supabase';
+    const $ = (s: string) => document.querySelector(s) as any;
+    const T: any = {
+      news: { label: 'News', list: ['title', 'published', 'created_at'], f: [['title', 'text'], ['slug', 'text'], ['summary', 'textarea'], ['body', 'textarea'], ['image', 'text'], ['published', 'check']] },
+      products: { label: 'Products', list: ['name', 'published', 'created_at'], f: [['name', 'text'], ['slug', 'text'], ['tagline', 'text'], ['description', 'textarea'], ['image', 'text'], ['published', 'check']] },
+      jobs: { label: 'Jobs', list: ['title', 'location', 'open'], f: [['title', 'text'], ['location', 'text'], ['type', 'text'], ['description', 'textarea'], ['open', 'check']] },
+      contacts: { label: 'Messages', ro: 1, list: ['name', 'email', 'message', 'created_at'] },
+      members: { label: 'Members', ro: 1, list: ['name', 'email', 'interest', 'created_at'] },
+      applications: { label: 'Applications', ro: 1, list: ['name', 'email', 'role', 'resume_url', 'message', 'created_at'] },
+    };
+    let cur = 'news', rows: any[] = [], editing: any = null;
+    const say = (t: string, bad = false) => { $('#msg').textContent = t; $('#msg').className = 'mt-3 text-sm ' + (bad ? 'text-red-400' : 'text-sky'); };
+    const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    async function guard() {
+      if (!supabase) { $('#cfg').hidden = false; return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { $('#login').hidden = false; $('#app').hidden = true; return; }
+      const { data } = await supabase.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
+      if (!data) { await supabase.auth.signOut(); $('#login').hidden = false; $('#lerr').textContent = 'This account is not an admin.'; $('#lerr').hidden = false; return; }
+      $('#login').hidden = true; $('#app').hidden = false; tabs(); load();
+    }
+    function tabs() {
+      $('#tabs').innerHTML = Object.keys(T).map((k) => `<button role="tab" data-k="${k}" aria-selected="${k === cur}" class="btn text-sm ${k === cur ? 'btn-primary' : 'btn-ghost'}">${T[k].label}</button>`).join('');
+    }
+    async function load() {
+      const t = T[cur]; $('#title').textContent = t.label; $('#new').hidden = !!t.ro; say('Loading...');
+      $('#tbl').innerHTML = '<div class="skeleton h-40"></div>';
+      const { data, error } = await supabase.from(cur).select('*').order('created_at', { ascending: false });
+      if (error) { $('#tbl').innerHTML = ''; return say('Could not load: ' + error.message, true); }
+      rows = data; say(rows.length ? '' : 'Nothing here yet.');
+      const cell = (v: any) => typeof v === 'boolean' ? (v ? 'Yes' : 'No') : esc(String(v ?? '').slice(0, 80));
+      $('#tbl').innerHTML = `<table class="w-full text-left text-sm"><thead class="bg-panel"><tr>${t.list.map((c: string) => `<th class="p-3 font-bold">${c}</th>`).join('')}<th class="p-3"></th></tr></thead><tbody>` +
+        rows.map((r) => `<tr class="border-t border-line">${t.list.map((c: string) => `<td class="p-3">${cell(r[c])}</td>`).join('')}<td class="whitespace-nowrap p-3 text-right">${t.ro ? '' : `<button data-e="${r.id}" class="mr-3 text-sky">Edit</button>`}<button data-d="${r.id}" class="text-red-400">Delete</button></td></tr>`).join('') + '</tbody></table>';
+    }
+    function openForm(row: any) {
+      editing = row; $('#dt').textContent = (row ? 'Edit ' : 'New ') + T[cur].label; $('#derr').hidden = true;
+      $('#fields').innerHTML = T[cur].f.map(([n, ty]: string[]) => {
+        const v = row ? row[n] : (ty === 'check' ? n === 'open' : ''), id = 'f_' + n;
+        if (ty === 'check') return `<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="${id}" ${v ? 'checked' : ''} /> ${n}</label>`;
+        if (ty === 'textarea') return `<label class="block text-sm">${n}<textarea id="${id}" rows="5" class="field">${esc(v)}</textarea></label>`;
+        return `<label class="block text-sm">${n}<input id="${id}" class="field" value="${esc(v)}" /></label>`;
+      }).join('');
+      $('#dlg').showModal();
+    }
+    $('#login').onsubmit = async (e: Event) => {
+      e.preventDefault(); const f = new FormData($('#login'));
+      const { error } = await supabase.auth.signInWithPassword({ email: f.get('email'), password: f.get('password') });
+      if (error) { $('#lerr').textContent = 'Wrong email or password.'; $('#lerr').hidden = false; } else guard();
+    };
+    $('#out').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
+    $('#tabs').onclick = (e: any) => { const k = e.target.dataset.k; if (k) { cur = k; tabs(); load(); } };
+    $('#new').onclick = () => openForm(null);
+    $('#cancel').onclick = () => $('#dlg').close();
+    $('#tbl').onclick = async (e: any) => {
+      const ed = e.target.dataset.e, del = e.target.dataset.d;
+      if (ed) openForm(rows.find((r) => r.id === ed));
+      if (del && confirm('Delete this item permanently?')) {
+        const { error } = await supabase.from(cur).delete().eq('id', del);
+        error ? say('Delete failed: ' + error.message, true) : load();
+      }
+    };
+    $('#ef').onsubmit = async (e: Event) => {
+      e.preventDefault(); const o: any = {};
+      T[cur].f.forEach(([n, ty]: string[]) => { const el = $('#f_' + n); o[n] = ty === 'check' ? el.checked : el.value.trim(); });
+      if ('slug' in o && !o.slug) o.slug = slug(o.title || o.name || '');
+      const q = editing ? supabase.from(cur).update(o).eq('id', editing.id) : supabase.from(cur).insert(o);
+      const btn = $('#ef button'); btn.disabled = true;
+      const { error } = await q; btn.disabled = false;
+      if (error) { $('#derr').textContent = 'Could not save: ' + error.message; $('#derr').hidden = false; return; }
+      $('#dlg').close(); say('Saved.'); load();
+    };
+    guard();
+  </script>
+</Base>

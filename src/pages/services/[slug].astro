@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import { services, serviceDetails } from '../../lib/data';
+export function getStaticPaths() { return services.map(s => ({ params: { slug: s.slug }, props: { s } })); }
+const { s } = Astro.props;
+const others = services.filter(x => x.slug !== s.slug).slice(0, 3);
+---
+<Base title={s.title} description={s.text}>
+  <section class="mx-auto max-w-4xl px-5 pt-24">
+    <a href="/services" class="text-sm text-sky">All services</a>
+    <h1 class="mt-4 text-5xl font-extrabold md:text-6xl">{s.title}</h1>
+    <p class="mt-5 max-w-xl text-lg text-mist">{s.text}</p>
+    <h2 class="mt-12 text-2xl font-bold">What is included</h2>
+    <ul class="mt-5 space-y-3">{serviceDetails[s.slug].map(d => <li class="rounded-xl border border-line bg-panel p-4">{d}</li>)}</ul>
+    <a href="/contact" class="btn btn-primary mt-10">Request a quote</a>
+    <h2 class="mt-16 text-2xl font-bold">Related services</h2>
+    <div class="mt-5 grid gap-4 md:grid-cols-3">{others.map(o => <a href={`/services/${o.slug}`} class="rounded-xl border border-line p-4 hover:border-bluet"><p class="font-bold">{o.title}</p></a>)}</div>
+  </section>
+</Base>

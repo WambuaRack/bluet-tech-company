@@ -1,0 +1,14 @@
+---
+import Base from '../../layouts/Base.astro';
+import { services } from '../../lib/data';
+const steps = ['Discover','Design','Build','Launch','Support'];
+---
+<Base title="Services" description="Software, cloud, AI, design, security and IT support.">
+  <section class="mx-auto max-w-6xl px-5 pt-24"><h1 class="text-5xl font-extrabold md:text-6xl">Services</h1>
+    <p class="mt-5 max-w-xl text-lg text-mist">Use us for one service or all of them. Each project has a fixed scope and a named lead.</p>
+    <div class="mt-12 grid gap-5 md:grid-cols-2">
+      {services.map(s => <article id={s.slug} class="rounded-2xl border border-line bg-panel p-8"><h2 class="text-2xl font-bold">{s.title}</h2><p class="mt-3 text-mist">{s.text}</p><a href={`/services/${s.slug}`} class="mt-5 inline-block text-sky text-sm">See what is included</a></article>)}
+    </div></section>
+  <section class="mx-auto mt-20 max-w-6xl px-5"><h2 class="text-3xl font-bold">How a project runs</h2>
+    <ol class="mt-8 grid gap-4 md:grid-cols-5">{steps.map((s,i) => <li class="rounded-xl border border-line p-4"><span class="text-sky font-bold">{i+1}</span><p class="mt-1 font-bold">{s}</p></li>)}</ol></section>
+</Base>

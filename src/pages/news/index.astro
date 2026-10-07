@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="News" description="Company news, product launches and practical writing from the Bluet Tech team.">
+  <section class="mx-auto max-w-5xl px-5 pt-24"><h1 class="text-5xl font-extrabold md:text-6xl">News</h1>
+    <div id="list" class="mt-12 grid gap-6 md:grid-cols-2"></div></section>
+  <script>
+    import { supabase, esc, img, fmt } from '../../lib/supabase';
+    import { renderList } from '../../lib/list';
+    renderList(document.getElementById('list')!, supabase && (() => supabase.from('news').select('slug,title,summary,image,created_at').eq('published', true).order('created_at', { ascending: false })),
+      (n) => `<a href="/news/article?slug=${encodeURIComponent(n.slug)}" class="card block transition hover:border-bluet">${n.image ? `<img src="${esc(img(n.image))}" alt="${esc(n.title)}" width="800" height="450" loading="lazy" class="mb-4 aspect-video w-full rounded-xl object-cover" />` : ''}<time class="text-sm text-mist">${fmt(n.created_at)}</time><h2 class="mt-1 text-xl font-bold">${esc(n.title)}</h2><p class="mt-2 text-mist">${esc(n.summary)}</p></a>`, 'No news yet. Check back soon.');
+  </script>
+</Base>

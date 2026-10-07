@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import Form from '../components/Form.astro';
+import { site } from '../lib/site';
+---
+<Base title="Contact" description="Contact Bluet Tech: address, phone, email and a form. We reply within one working day.">
+  <section class="mx-auto grid max-w-6xl gap-12 px-5 pt-24 md:grid-cols-2">
+    <div><h1 class="text-5xl font-extrabold">Tell us about your project</h1>
+      <p class="mt-5 text-mist">We reply within one working day.</p>
+      <address class="mt-8 space-y-1 not-italic">{site.address.map(l => <div>{l}</div>)}
+        <div class="pt-3"><a class="text-sky" href={`mailto:${site.email}`}>{site.email}</a></div><div><a class="text-sky" href={`tel:${site.phone.replace(/\s/g,'')}`}>{site.phone}</a></div>
+        <div class="text-mist">{site.hours}</div></address></div>
+    <Form table="contacts" submit="Send message" type="contact">
+      <label class="block text-sm">Name<input name="name" required maxlength="120" autocomplete="name" class="field" /></label>
+      <label class="block text-sm">Email<input type="email" name="email" required autocomplete="email" class="field" /></label>
+      <label class="block text-sm">How can we help?<textarea name="message" rows="5" required maxlength="5000" class="field"></textarea></label>
+    </Form></section>
+</Base>
